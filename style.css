@@ -2,6 +2,8 @@
 /* ==== Globals ====*/
 html {
     --dark-blue: #363f5f;
+    --green: #49AA26;
+    --red: #e92929;
 }
 
 * {
@@ -10,10 +12,26 @@ html {
     box-sizing: border-box;
 }
 
+html {
+    font-size: 93.75%; /* 15px*/
+}
+
 .container {
     width: min(90vw, 800px); /*Pega o menor valor entre os 2*/
 
     margin: auto /* Balanceia as margens laterais "centralizando"*/
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
 body {
@@ -28,6 +46,56 @@ h2 {
     margin-bottom: 0.8rem;
     color: var(--dark-blue);
     font-weight: normal;
+}
+
+/* ==== Links and Buttons ==== */
+
+a {
+    color: var(--green);
+    text-decoration: none;
+}
+
+button {
+    width: 100%;
+    height: 50px;
+    border: 0;
+    color: white;
+    background-color: var(--green);
+    border-radius: 0.25rem;
+    cursor: pointer;
+
+}
+
+button:hover {
+    background-color: #3dd705;
+}
+
+a:hover {
+    color: #3dd705;
+}
+
+.button.new {
+    display: inline-block; /* Só inline não pega margin e black pega a largura inteira da caixa*/ 
+    margin-bottom: 0.8rem;
+}
+
+.button.cancel {
+    color: var(--red);
+    border: 2px var(--red) solid;
+    border-radius: 0.25rem;
+
+    height: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0.5;
+
+}
+
+.button.cancel:hover {
+    opacity: 1;
 }
 
 /* ==== Header ====*/
@@ -53,6 +121,14 @@ header {
     margin-top: 0;
 }
 
+#transaction {
+    display: block;
+    /*overflow: hidden;  Sempre que estourar...hidden*/
+    overflow-x: auto; /*Para mobile, faz automatizar a rolagem em um dos eixos*/
+    width: 100%;
+
+}
+
 /* ==== Cards ====*/
 .card {
     background: white;
@@ -66,6 +142,9 @@ header {
 .card h3 {
     font-weight: normal;
     font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .card p {
@@ -75,16 +154,16 @@ header {
 }
 
 .card.total { /*Classe CARD que possua a classe total*/
-    background: #49AA26;
+    background: var(--green);
     color: white;
 }
 
 /* ==== Table ====*/
 
-#data-table {
+#data-table {   
     width: 100%;
     border-spacing: 0 0.5rem;
-    color: #969cb3;
+    color: #969cb3;   
 }
 
 table th {
@@ -110,7 +189,7 @@ td.income { /* Todo td que tiver a classe income*/
     color: #12a454;
 }
 
-td.expense { /* Todo td que tiver a classe income*/
+td.expense { /* Todo td que tiver a classe expense*/
     color: #e92929;
 }
 
@@ -123,8 +202,80 @@ table tbody tr:hover {
 }
 
 table thead tr th:first-child,
-table thead tr td:first-child {
-    border-radius: 0.25rem 0 0 0.25rem;
+table tbody tr td:first-child {
+    border-radius: 0.25rem 0 0 0.25rem; /*Começa da primeira borda acima, sentido horário*/
+}
+
+table thead tr th:last-child,
+table tbody tr td:last-child {
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+
+/* ==== Modal ====*/
+.modal-overlay {
+    width: 100%;
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.7);
+    position: fixed;
+    top: 0;
+
+    display: flex;
+    align-items: center; /* vertical*/
+    justify-content: center; /* horizontal*/
+
+    /*Sumir com o Overlay*/
+    opacity: 0;
+    visibility: hidden;
+    /*---*/
+
+}
+
+.modal-overlay.active {
+    opacity: 1; /* opacidade 1 porque o que deixa transparente é o background-color e não a property opacity*/
+    visibility: visible;
+}
+
+.modal {
+    background-color: #f0f2f5;
+    padding: 2.4rem;
+    position: relative;
+}
+
+/* ==== Forms ====*/
+
+#form {
+    max-width: 500px;
+}
+
+#form h2 {
+    margin-top: 0;
+}
+
+#form form input {
+    border: none;
+    border-radius: 0.2rem;
+    padding: 0.8rem;
+    width: 100%;
+}
+
+.input-group {
+    margin-top: 0.8rem;
+}
+
+.input-group small {
+    opacity: 0.6;
+}
+
+.input-group.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.input-group.actions .button,
+.input-group.actions button {
+    width: 48%;
 }
 
 /* ==== Footer ====*/
@@ -133,4 +284,20 @@ footer {
     padding: 4rem 0 2rem;
     color: var(--dark-blue);
     opacity: 0.6;
+}
+
+/* ==== Responsividade ====*/
+
+@media (min-width: 800px) {
+    html {
+        font-size: 87.5%;
+
+    }
+
+    #balance {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /*Pode usar repea(numero colunas (elementos a ajustar), 1fr(tamanho))*/
+        gap: 2rem;
+    }
+
 }
