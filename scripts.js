@@ -1,29 +1,3 @@
-const transactions = [
-    {
-        id: 1,
-        description: "Luz",
-        amount: -50000,
-        date: '23/01/2021'
-    },
-    {
-        id: 2,
-        description: "WebSite",
-        amount: 500000,
-        date: '27/01/2021'        
-    },
-    {
-        id: 3,
-        description: "Internet",
-        amount: -20000,
-        date: '10/02/2021'
-    },
-    {
-        id: 4,
-        description: "Salário",
-        amount: 180000,
-        date: '10/02/2021'
-    }
-]
 /* Objeto com duas funções, como se fossem properties. São chamadas métodos */
 const Modal = { // esses objetos funcionan como as units com funcoes do delphi
     open() {
@@ -41,11 +15,37 @@ const Modal = { // esses objetos funcionan como as units com funcoes do delphi
 } 
 
 const Transaction = {
-    all: transactions,
+    all: [
+        {       
+            description: "Luz",
+            amount: -50000,
+            date: '23/01/2021'
+        },
+        {
+            description: "WebSite",
+            amount: 500000,
+            date: '27/01/2021'        
+        },
+        {
+            description: "Internet",
+            amount: -20000,
+            date: '10/02/2021'
+        },
+        {
+            description: "Salário",
+            amount: 180000,
+            date: '10/02/2021'
+        }
+    ],
 
     add(transaction) {
         this.all.push(transaction);
         console.log(this.all);
+        App.reload();
+    },
+
+    remove(index) {
+        this.all.splice(index, 1);
         App.reload();
     },
 
@@ -82,6 +82,9 @@ const Transaction = {
 }
 
 const Utils = {
+    formatAmount(value) {
+
+    },
     formatCurrency(value) {
         const signal = Number(value) < 0 ? "-" : ""; //Number() -> força o valor a ser numero
 
@@ -138,6 +141,49 @@ const DOM = {
     }
 }
 
+const Form = {
+    description : document.querySelector("#description"),
+    amount: document.querySelector("#amount"),
+    date: document.querySelector("#date"),
+
+    getValues() {
+        return {
+            description : Form.description.value,
+            amount : Form.amount.value,
+            date: Form.date.value 
+        }
+    },
+
+    validateFields() {
+        const {description, amount, date} = Form.getValues(); // Extrai os campos em chaves do objeto
+
+        if (description.trim() === "" ||
+            amount.trim() === "" ||
+            date.trim() === "") {
+                throw new Error("Por favor, preencha todos os campos");
+        }
+    },
+
+    formatValues() {
+        let {description, amount, date} = Form.getValues();
+
+        amount = Utils.formatAmount(amount);
+
+    },
+
+    submit(event) {
+        event.preventDefault();
+
+        try {
+            Form.validateFields();
+            Form.formatValues*();
+            
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+}
+
 const App = {
     init() {
         Transaction.all.forEach( transaction => {
@@ -153,12 +199,5 @@ const App = {
 }
 
 App.init();
-
-Transaction.add({
-    id: 50,
-    description: "Formatações",
-    amount: 5000,
-    date: "15/02/2020"
-});
 
 
