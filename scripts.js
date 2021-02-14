@@ -14,33 +14,21 @@ const Modal = { // esses objetos funcionan como as units com funcoes do delphi
     }
 } 
 
+const Storage = {
+    get() {
+        return JSON.parse(localStorage.getItem("dev.finances:transactions")) || [];
+    },
+
+    set(transactions) {
+        localStorage.setItem("dev.finances:transactions", JSON.stringify(transactions));
+    }
+}
+
 const Transaction = {
-    all: [
-        {       
-            description: "Luz",
-            amount: -50000,
-            date: '23/01/2021'
-        },
-        {
-            description: "WebSite",
-            amount: 500000,
-            date: '27/01/2021'        
-        },
-        {
-            description: "Internet",
-            amount: -20000,
-            date: '10/02/2021'
-        },
-        {
-            description: "Salário",
-            amount: 180000,
-            date: '10/02/2021'
-        }
-    ],
+    all: Storage.get(),
 
     add(transaction) {
         this.all.push(transaction);
-        console.log(this.all);
         App.reload();
     },
 
@@ -83,8 +71,16 @@ const Transaction = {
 
 const Utils = {
     formatAmount(value) {
+        value = Number(value.replace(/\.\,/g,"")) * 100;       
 
+        return value;
     },
+
+    formatDate(value) {       
+        const splitedDate = value.split("-");       
+        return `${splitedDate[2]}/${splitedDate[1]}/${splitedDate[0]}`;
+    },
+
     formatCurrency(value) {
         const signal = Number(value) < 0 ? "-" : ""; //Number() -> força o valor a ser numero
 
@@ -106,11 +102,13 @@ const DOM = {
 
     addTransaction(transaction, index) {
         const tr = document.createElement("tr");
-        tr.innerHTML = DOM.innerHTMLTransaction(transaction); 
+        tr.innerHTML = DOM.innerHTMLTransaction(transaction, index); 
+        tr.dataset.index = index;
         
         DOM.containerTransaction.appendChild(tr);
     },
-    innerHTMLTransaction(transaction) {
+
+    innerHTMLTransaction(transaction, index) {
         const CSSclass = transaction.amount > 0 ? "income" : "expense"; //if reduzido
 
         const amount = Utils.formatCurrency(transaction.amount);
@@ -120,7 +118,7 @@ const DOM = {
             <td class="${CSSclass}">${amount}</td>
             <td class="date">${transaction.date}</td>
             <td>
-                <img src="./assets/minus.svg" alt="Remover Transação">
+                <img class="remove-transaction" onclick="Transaction.remove(${index})" src="./assets/minus.svg" alt="Remover Transação">
             </td>`;
 
         return html;
@@ -169,6 +167,23 @@ const Form = {
 
         amount = Utils.formatAmount(amount);
 
+        date = Utils.formatDate(date);
+
+        return {
+            description,
+            amount,
+            date
+        };
+    },
+
+    saveTransaction(transaction) {
+        Transaction.add(transaction);
+    },
+
+    clearFields() {
+        Form.description.value = "";
+        Form.amount.value = "";
+        Form.date.value = "";
     },
 
     submit(event) {
@@ -176,7 +191,13 @@ const Form = {
 
         try {
             Form.validateFields();
-            Form.formatValues*();
+
+            const transaction = Form.formatValues(); 
+
+            Form.saveTransaction(transaction);
+            Form.clearFields();
+
+            Modal.close();
             
         } catch (error) {
             alert(error.message);
@@ -185,12 +206,12 @@ const Form = {
 }
 
 const App = {
-    init() {
-        Transaction.all.forEach( transaction => {
-            DOM.addTransaction(transaction);
-        }); //forEach vai percorrer cada elemento do array        
+    init() {       
+        Transaction.all.forEach(DOM.addTransaction); //forEach vai percorrer cada elemento do array        
 
         DOM.updateBalance();
+
+        Storage.set(Transaction.all);
     },
     reload() {
         DOM.clearTransactions();
