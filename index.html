@@ -82,6 +82,11 @@
                     </div>
 
                     <div class="input-group">
+                        <input onclick="DOM.check('positive')" class="radio-item" type="radio" name="type-amount" id="positive" value="" checked>
+                        <label for="positive">Entrada</label>
+                        <input onclick="DOM.check('negative')" class="radio-item" type="radio" name="type-amount" id="negative" value="-">
+                        <label for="negative">Saída</label>
+                    </div>                    <div class="input-group">
                         <label class="sr-only" for="amount">Valor</label>
                         <input 
                             type="number" 
@@ -91,7 +96,7 @@
                             step="0.01"
                         > <!-- Leitor de Tela não entende placeholder, por isso colocar a label-->
                         <small class="help">
-                            Use o sinal - (negativo) e , (vírgula) para casas decimais
+                            Use , (vírgula) para casas decimais.
                         </small>
                     </div>
 

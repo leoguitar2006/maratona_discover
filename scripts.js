@@ -70,8 +70,11 @@ const Transaction = {
 }
 
 const Utils = {
-    formatAmount(value) {
-        value = Number(value.replace(/\.\,/g,"")) * 100;       
+    formatAmount(value, isEntrada) {
+        value = value * 100;       
+        value = Math.round(value);
+        console.log(isEntrada);
+        value = isEntrada ? value : value*-1;
 
         return value;
     },
@@ -97,7 +100,17 @@ const Utils = {
     }
 }
 // Trabalha-se muito com objetos e nele podem conter properties e metodos, separados por virgulas.
-const DOM = {
+const DOM = {  
+    check(signal){
+        if (signal === "positive") {
+            document.getElementById("positive").checked = true;
+            document.getElementById("negative").checked = false;           
+        } else {
+            document.getElementById("negative").checked = true;
+            document.getElementById("positive").checked = false;           
+        }
+    },
+    
     containerTransaction: document.querySelector("#data-table tbody"),
 
     addTransaction(transaction, index) {
@@ -143,12 +156,14 @@ const Form = {
     description : document.querySelector("#description"),
     amount: document.querySelector("#amount"),
     date: document.querySelector("#date"),
+    isEntrada: document.getElementById("positive"),  
 
     getValues() {
         return {
             description : Form.description.value,
             amount : Form.amount.value,
-            date: Form.date.value 
+            date: Form.date.value,
+            isEntrada: Form.isEntrada.checked
         }
     },
 
@@ -163,9 +178,9 @@ const Form = {
     },
 
     formatValues() {
-        let {description, amount, date} = Form.getValues();
+        let {description, amount, date, isEntrada} = Form.getValues();
 
-        amount = Utils.formatAmount(amount);
+        amount = Utils.formatAmount(amount, isEntrada);
 
         date = Utils.formatDate(date);
 
