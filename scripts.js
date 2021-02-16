@@ -11,6 +11,21 @@ const Modal = { // esses objetos funcionan como as units com funcoes do delphi
             .querySelector(".modal-overlay")
             .classList
             .remove("active");
+    },
+    showError() {
+        document
+            .querySelector(".modal-error")
+            .classList
+            .add("active");
+    },
+    hideError() {
+        setTimeout(() => {
+            document
+            .querySelector(".modal-error")
+            .classList
+            .remove("active");
+        }
+        ,3500)
     }
 } 
 
@@ -215,7 +230,8 @@ const Form = {
             Modal.close();
             
         } catch (error) {
-            alert(error.message);
+            Modal.showError();
+            Modal.hideError();
         }
     }
 }
