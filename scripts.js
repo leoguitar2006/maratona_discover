@@ -1,10 +1,13 @@
 /* Objeto com duas funções, como se fossem properties. São chamadas métodos */
 const Modal = { // esses objetos funcionan como as units com funcoes do delphi
-    open() {
+    open(isClean=true) {       
+        if (isClean) {
+            Form.clearFields();
+        }
         document
             .querySelector(".modal-overlay")
             .classList
-            .add("active");
+            .add("active");       
     },
     close() {               
         document
@@ -43,13 +46,24 @@ const Transaction = {
     all: Storage.get(),
 
     add(transaction) {
-        this.all.push(transaction);
+        if (Form.isNew) {
+            this.all.push(transaction);
+        } else {
+            this.all[this.all.index].description = transaction.description;
+            this.all[this.all.index].amount = transaction.amount;
+            this.all[this.all.index].date = transaction.date;
+        }      
         App.reload();
     },
 
     remove(index) {
         this.all.splice(index, 1);
         App.reload();
+    },
+    
+    alter(index) {
+
+        DOM.editTransaction(this.all[index]);
     },
 
     incomes() {
@@ -99,17 +113,24 @@ const Utils = {
         return `${splitedDate[2]}/${splitedDate[1]}/${splitedDate[0]}`;
     },
 
-    formatCurrency(value) {
+    formatDateInverse(value){
+        const splitedDate = value.split("/");       
+        return `${splitedDate[2]}-${splitedDate[1]}-${splitedDate[0]}`;
+    },
+
+    formatCurrency(value, tipoMoeda=true) {
         const signal = Number(value) < 0 ? "-" : ""; //Number() -> força o valor a ser numero
 
         value = String(value).replace(/\D/g, ""); //Tira os sinais. /coteudo/ expressão regular o \D pega so numero e o g significa na string toda. sem ele, substitui só o primeiro
 
         value = Number(value) / 100;
 
-        value = value.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-        });
+        if (tipoMoeda) {
+            value = value.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });    
+        }        
 
         return signal + value;
     }
@@ -136,6 +157,18 @@ const DOM = {
         DOM.containerTransaction.appendChild(tr);
     },
 
+    editTransaction(transaction) {
+        document.querySelector("#description").value = transaction.description;
+        document.querySelector("#amount").value = Utils.formatCurrency(transaction.amount, false);
+        document.querySelector("#date").value = Utils.formatDateInverse(transaction.date);
+        document.getElementById("positive").checked = transaction.amount > 0;
+        document.getElementById("negative").checked = transaction.amount < 0;
+
+        Form.isNew = false;
+
+        Modal.open(Form.isNew);
+    },
+
     innerHTMLTransaction(transaction, index) {
         const CSSclass = transaction.amount > 0 ? "income" : "expense"; //if reduzido
 
@@ -147,6 +180,9 @@ const DOM = {
             <td class="date">${transaction.date}</td>
             <td>
                 <img class="remove-transaction" onclick="Transaction.remove(${index})" src="./assets/minus.svg" alt="Remover Transação">
+            </td>
+            <td>
+                <img class="alter-transaction" onclick="Transaction.alter(${index})" src="./assets/edit.svg" alt="Alterar Transação">
             </td>`;
 
         return html;
@@ -171,7 +207,8 @@ const Form = {
     description : document.querySelector("#description"),
     amount: document.querySelector("#amount"),
     date: document.querySelector("#date"),
-    isEntrada: document.getElementById("positive"),  
+    isEntrada: document.getElementById("positive"), 
+    isNew: true, 
 
     getValues() {
         return {
@@ -224,7 +261,7 @@ const Form = {
 
             const transaction = Form.formatValues(); 
 
-            Form.saveTransaction(transaction);
+            Transaction.add(transaction);
             Form.clearFields();
 
             Modal.close();
