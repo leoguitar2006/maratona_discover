@@ -179,9 +179,7 @@ const DOM = {
             <td class="${CSSclass}">${amount}</td>
             <td class="date">${transaction.date}</td>
             <td>
-                <img class="remove-transaction" onclick="Transaction.remove(${transaction.id})" src="./assets/minus.svg" alt="Remover Transação">
-            </td>
-            <td>
+                <img class="remove-transaction" onclick="Transaction.remove(${transaction.id})" src="./assets/minus.svg" alt="Remover Transação">                   
                 <img class="alter-transaction" onclick="Modal.open(${transaction.id})" src="./assets/edit.svg" alt="Alterar Transação">
             </td>`;
 
@@ -298,6 +296,7 @@ const App = {
         Transaction.all.forEach(DOM.addTransaction); //forEach vai percorrer cada elemento do array        
 
         DOM.updateBalance();
+        Form.clearFields();
 
         Storage.set(Transaction.all);
     },

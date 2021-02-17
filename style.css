@@ -129,6 +129,10 @@ header {
 
 }
 
+img.remove-transaction {
+    margin-right: 1rem;
+}
+
 /* ==== Cards ====*/
 .card {
     background: white;
