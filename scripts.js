@@ -1,19 +1,32 @@
 /* Objeto com duas funções, como se fossem properties. São chamadas métodos */
 const Modal = { // esses objetos funcionan como as units com funcoes do delphi
-    open(isClean=true) {       
-        if (isClean) {
-            Form.clearFields();
-        }
+    open(idTransaction = "") {       
         document
             .querySelector(".modal-overlay")
             .classList
-            .add("active");       
+            .add("active"); 
+            
+        if (idTransaction) {
+            idTransaction = Number(idTransaction);
+            const [transaction] = Transaction.all.filter(transaction => {
+                return transaction.id === idTransaction;
+            });
+            Form.setValues(
+                transaction.description,
+                transaction.amount / 100,
+                Utils.formatDateInverse(transaction.date),
+                transaction.id,
+                transaction.isEntrada,
+                transaction.isSaida
+            );
+        }
     },
     close() {               
         document
             .querySelector(".modal-overlay")
             .classList
             .remove("active");
+        Form.clearFields();
     },
     showError() {
         document
@@ -46,26 +59,26 @@ const Transaction = {
     all: Storage.get(),
 
     add(transaction) {
-        if (Form.isNew) {
-            this.all.push(transaction);
+        const index = this.all.findIndex(item => {
+            return item.id === transaction.id;
+        });
+
+        if (index > -1) {
+            Transaction.all.splice(index, 1, transaction);
         } else {
-            this.all[this.all.index].description = transaction.description;
-            this.all[this.all.index].amount = transaction.amount;
-            this.all[this.all.index].date = transaction.date;
-        }      
+            Transaction.all.push(transaction);
+        };   
         App.reload();
     },
 
-    remove(index) {
+    remove(idTransaction) {
+        const index = this.all.findIndex(transaction => {
+            return transaction.id === idTransaction;
+        });
+      
         this.all.splice(index, 1);
         App.reload();
     },
-    
-    alter(index) {
-
-        DOM.editTransaction(this.all[index]);
-    },
-
     incomes() {
         // Somar as Entradas
         let income = 0;
@@ -101,8 +114,7 @@ const Transaction = {
 const Utils = {
     formatAmount(value, isEntrada) {
         value = value * 100;       
-        value = Math.round(value);
-        console.log(isEntrada);
+        value = Math.round(value);       
         value = isEntrada ? value : value*-1;
 
         return value;
@@ -157,18 +169,6 @@ const DOM = {
         DOM.containerTransaction.appendChild(tr);
     },
 
-    editTransaction(transaction) {
-        document.querySelector("#description").value = transaction.description;
-        document.querySelector("#amount").value = Utils.formatCurrency(transaction.amount, false);
-        document.querySelector("#date").value = Utils.formatDateInverse(transaction.date);
-        document.getElementById("positive").checked = transaction.amount > 0;
-        document.getElementById("negative").checked = transaction.amount < 0;
-
-        Form.isNew = false;
-
-        Modal.open(Form.isNew);
-    },
-
     innerHTMLTransaction(transaction, index) {
         const CSSclass = transaction.amount > 0 ? "income" : "expense"; //if reduzido
 
@@ -179,10 +179,10 @@ const DOM = {
             <td class="${CSSclass}">${amount}</td>
             <td class="date">${transaction.date}</td>
             <td>
-                <img class="remove-transaction" onclick="Transaction.remove(${index})" src="./assets/minus.svg" alt="Remover Transação">
+                <img class="remove-transaction" onclick="Transaction.remove(${transaction.id})" src="./assets/minus.svg" alt="Remover Transação">
             </td>
             <td>
-                <img class="alter-transaction" onclick="Transaction.alter(${index})" src="./assets/edit.svg" alt="Alterar Transação">
+                <img class="alter-transaction" onclick="Modal.open(${transaction.id})" src="./assets/edit.svg" alt="Alterar Transação">
             </td>`;
 
         return html;
@@ -207,17 +207,30 @@ const Form = {
     description : document.querySelector("#description"),
     amount: document.querySelector("#amount"),
     date: document.querySelector("#date"),
-    isEntrada: document.getElementById("positive"), 
-    isNew: true, 
+    id: document.querySelector("input#id"),
+    isEntrada: document.getElementById("positive"),
+    isSaida: document.getElementById("negative"), 
 
     getValues() {
         return {
+            id: Form.id.value,
             description : Form.description.value,
             amount : Form.amount.value,
             date: Form.date.value,
-            isEntrada: Form.isEntrada.checked
+            isEntrada: Form.isEntrada.checked,
+            isSaida: Form.isSaida.checked
         }
     },
+
+    setValues(description, amount, date, id, isEntrada, isSaida) {
+        Form.description.value = description;
+        Form.amount.value = amount < 0 ? amount *-1 : amount;
+        Form.date.value = date;
+        Form.id.value = id;
+        Form.isEntrada.checked = isEntrada,
+        Form.isSaida.checked = isSaida;
+    },
+
 
     validateFields() {
         const {description, amount, date} = Form.getValues(); // Extrai os campos em chaves do objeto
@@ -230,16 +243,25 @@ const Form = {
     },
 
     formatValues() {
-        let {description, amount, date, isEntrada} = Form.getValues();
+        let {id, description, amount, date, isEntrada, isSaida} = Form.getValues();
+
+        if (id) {
+            id = Number(id);
+        } else {
+            id = Number(new Date().getTime());
+        }
 
         amount = Utils.formatAmount(amount, isEntrada);
 
         date = Utils.formatDate(date);
 
         return {
+            id,
             description,
             amount,
-            date
+            date,
+            isEntrada,
+            isSaida
         };
     },
 
@@ -248,9 +270,7 @@ const Form = {
     },
 
     clearFields() {
-        Form.description.value = "";
-        Form.amount.value = "";
-        Form.date.value = "";
+        Form.setValues("", "", new Date().toISOString().substr(0, 10), "",true,false);
     },
 
     submit(event) {
